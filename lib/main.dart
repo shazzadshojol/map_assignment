@@ -32,7 +32,7 @@ class _MapScreenState extends State<MapScreen> {
   Set<Marker> markers = {};
   List<LatLng> polylineCoordinates = [];
   late Timer locationTimer;
-
+  bool inProgress = false;
 
   @override
   void initState() {
@@ -48,37 +48,47 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: GoogleMap(
-          initialCameraPosition: CameraPosition(
-            target: LatLng(
-              currentLocation.latitude ?? 0.0,
-              currentLocation.longitude ?? 0.0,
-            ),
-            zoom: 20,
+        body: Visibility(
+          visible: inProgress == false,
+          replacement: const Center(
+            child: CircularProgressIndicator(),
           ),
-          onMapCreated: (GoogleMapController controller) {
-            mapController = controller;
-          },
-          myLocationEnabled: true,
-          padding:
-          const EdgeInsets.only(left: 0, top: 600, right: 0, bottom: 0),
-          markers: markers,
-          polylines: {
-            Polyline(
-              polylineId: const PolylineId("polyline"),
-              color: Colors.blue,
-              points: polylineCoordinates,
+          child: GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(
+                currentLocation.latitude ?? 0.0,
+                currentLocation.longitude ?? 0.0,
+              ),
+              zoom: 20,
             ),
-          },
+            onMapCreated: (GoogleMapController controller) {
+              mapController = controller;
+            },
+            myLocationEnabled: true,
+            padding:
+                const EdgeInsets.only(left: 0, top: 600, right: 0, bottom: 0),
+            markers: markers,
+            polylines: {
+              Polyline(
+                polylineId: const PolylineId("polyline"),
+                color: Colors.blue,
+                points: polylineCoordinates,
+              ),
+            },
+          ),
         ),
       ),
     );
   }
 
   void _startLocationUpdates() {
+    inProgress = true;
+    setState(() {});
     locationTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
       LocationData locationData = await Location().getLocation();
+
       currentLocation = locationData;
+      inProgress = false;
       setState(() {});
       mapController.animateCamera(
         CameraUpdate.newLatLng(LatLng(
@@ -98,7 +108,7 @@ class _MapScreenState extends State<MapScreen> {
       infoWindow: InfoWindow(
         title: "My live location",
         snippet:
-        "Lat: ${currentLocation.latitude}, Lng: ${currentLocation.longitude}",
+            "Lat: ${currentLocation.latitude}, Lng: ${currentLocation.longitude}",
       ),
     );
     markers.add(marker);
