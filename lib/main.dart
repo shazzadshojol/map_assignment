@@ -81,6 +81,7 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  // progress indicator working but very slow. Takes too much time. May be plugin issue.
   void _startLocationUpdates() {
     inProgress = true;
     setState(() {});
